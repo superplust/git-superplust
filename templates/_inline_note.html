@@ -1,0 +1,10 @@
+{% if commentary %}
+  {% for c in commentary %}
+  <div class="note-card">
+    <p class="note-title">{{ c.title }}</p>
+    <p class="note-body">{{ c.body }}</p>
+  </div>
+  {% endfor %}
+{% else %}
+  <p class="empty">No study note for this verse yet.</p>
+{% endif %}

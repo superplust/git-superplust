@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}{% if q %}“{{ q }}” — Search · Selah{% else %}Search · Selah{% endif %}{% endblock %}
+{% block content %}
+{% set hx = false %}
+<div class="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+  <h1 class="font-serif text-3xl tracking-tight sm:text-4xl">Search</h1>
+
+  <form action="{{ url_for('search_route') }}" method="get" role="search" class="mt-5 flex gap-2">
+    <input type="search" name="q" value="{{ q }}" autofocus autocomplete="off" spellcheck="false"
+           aria-label="Search the Bible"
+           placeholder="A word, phrase, or reference…"
+           class="w-full rounded-full border border-line bg-surface px-4 py-2.5 text-sm text-ink placeholder:text-muted/80 focus:border-sage-500 focus:outline-none focus:ring-2 focus:ring-sage-200">
+    <button type="submit" class="shrink-0 rounded-full bg-sage-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-sage-700">Search</button>
+  </form>
+
+  {% if q %}
+    <p class="mt-8 text-sm text-muted">
+      {{ total }} result{{ 's' if total != 1 }} for “<span class="text-ink">{{ q }}</span>”
+    </p>
+
+    {% if ref %}
+    {% set url = url_for('read_chapter', book=ref.book.slug, chapter=ref.chapter) ~ ('?focus=' ~ ref.verse if ref.verse else '') %}
+    <a class="search-goto mt-4" href="{{ url }}{% if ref.verse %}#v{{ ref.verse }}{% endif %}">
+      <span class="label">Jump to</span>
+      <strong>{{ ref.book.name }} {{ ref.chapter }}{% if ref.verse %}:{{ ref.verse }}{% endif %}</strong>
+      <span class="arrow" aria-hidden="true">→</span>
+    </a>
+    {% endif %}
+
+    {% if rows %}
+    <ul class="search-hits mt-4">
+      {% for r in rows %}{% include "_search_hit.html" %}{% endfor %}
+    </ul>
+    {% elif not ref %}
+    <p class="mt-6 rounded-xl border border-line bg-surface p-6 text-center text-sm text-muted">
+      Nothing found. Try a single word like <a class="text-sage-600 underline underline-offset-2" href="{{ url_for('search_route', q='shepherd') }}">shepherd</a>,
+      or a reference like <a class="text-sage-600 underline underline-offset-2" href="{{ url_for('search_route', q='John 3:16') }}">John 3:16</a>.
+    </p>
+    {% endif %}
+  {% else %}
+    <div class="mt-8 rounded-xl border border-line bg-surface p-6 text-sm leading-relaxed text-muted">
+      <p>Search across every verse of the King James Version, or jump straight to a passage.</p>
+      <ul class="mt-3 list-disc space-y-1 pl-5">
+        <li>Words &amp; phrases — <a class="text-sage-600 underline underline-offset-2" href="{{ url_for('search_route', q='valley of the shadow') }}">valley of the shadow</a></li>
+        <li>References — <a class="text-sage-600 underline underline-offset-2" href="{{ url_for('search_route', q='Philippians 4:13') }}">Philippians 4:13</a></li>
+        <li>Partial references — <a class="text-sage-600 underline underline-offset-2" href="{{ url_for('search_route', q='psalm 23') }}">psalm 23</a></li>
+      </ul>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% if not notes %}
+<p class="empty" id="allnotes-empty">No saved notes yet — open a verse and write one.</p>
+{% endif %}
+{% for note in notes %}
+<div class="allnotes-item" id="allnote-{{ note.id }}">
+  {% set url = url_for('read_chapter', book=note.slug, chapter=note.chapter) ~ '?focus=' ~ note.verse %}
+  <a class="allnotes-ref" href="{{ url }}#v{{ note.verse }}"
+     hx-get="{{ url }}" hx-target="#chapter-outlet" hx-push-url="{{ url }}"
+     data-close-nav>{{ note.book_name }} {{ note.chapter }}:{{ note.verse }}</a>
+  <p class="allnotes-body">{{ note.body }}</p>
+  <div class="allnotes-meta">
+    <time datetime="{{ note.created_at }}">{{ note.created_at[:10] }}</time>
+    <button type="button" class="link-btn"
+            hx-delete="{{ url_for('delete_note', note_id=note.id) }}"
+            hx-target="#allnote-{{ note.id }}" hx-swap="outerHTML"
+            hx-confirm="Delete this note?">Delete</button>
+  </div>
+</div>
+{% endfor %}

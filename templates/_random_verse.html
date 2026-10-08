@@ -1,0 +1,8 @@
+{% if prayer_verse %}
+<figure class="verse-card">
+  <blockquote{% if prayer_verse.translation != 'kjv' %} dir="rtl" lang="ar"{% endif %}>{{ prayer_verse.text }}</blockquote>
+  <figcaption class="ref">{{ prayer_verse.book_name }} {{ prayer_verse.chapter }}:{{ prayer_verse.verse }}</figcaption>
+</figure>
+{% else %}
+<p class="lexicon-status">No verse is available right now.</p>
+{% endif %}

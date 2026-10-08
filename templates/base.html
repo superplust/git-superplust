@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>{% block title %}Selah · A quiet place to read Scripture{% endblock %}</title>
+  <meta name="description" content="Selah — a modern, distraction-free Bible reader built with Flask, SQLite and HTMX. King James Version.">
+  <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+  <script src="{{ url_for('static', filename='js/tailwind.js') }}"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            // Each colour is an rgb triplet variable so the whole palette
+            // flips with html[data-theme="dark"] in static/css/app.css.
+            paper: "rgb(var(--tw-paper) / <alpha-value>)",
+            surface: "rgb(var(--tw-surface) / <alpha-value>)",
+            ink: {
+              DEFAULT: "rgb(var(--tw-ink) / <alpha-value>)",
+              soft: "rgb(var(--tw-ink-soft) / <alpha-value>)",
+            },
+            muted: "rgb(var(--tw-muted) / <alpha-value>)",
+            line: "rgb(var(--tw-line) / <alpha-value>)",
+            sage: {
+              50: "rgb(var(--tw-sage-50) / <alpha-value>)",
+              100: "rgb(var(--tw-sage-100) / <alpha-value>)",
+              200: "rgb(var(--tw-sage-200) / <alpha-value>)",
+              500: "rgb(var(--tw-sage-500) / <alpha-value>)",
+              600: "rgb(var(--tw-sage-600) / <alpha-value>)",
+              700: "rgb(var(--tw-sage-700) / <alpha-value>)",
+            },
+          },
+          fontFamily: {
+            sans: ["ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif"],
+            serif: ["Georgia", "Iowan Old Style", "Times New Roman", "serif"],
+          },
+        },
+      },
+    };
+  </script>
+  <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <script src="{{ url_for('static', filename='js/htmx.min.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</head>
+<body class="min-h-screen bg-paper font-sans text-ink antialiased">
+  <div id="topbar" aria-hidden="true"></div>
+
+  <header class="site-header sticky top-0 z-40 border-b border-line/70 bg-paper/85 backdrop-blur-md">
+    <div class="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 sm:h-16 sm:gap-6 sm:px-6">
+      <button type="button" id="selah-logo" data-open-nav aria-haspopup="dialog" aria-controls="nav-drawer"
+              class="group flex shrink-0 cursor-pointer items-center gap-2" title="Selah — menu &amp; settings">
+        <svg class="h-7 w-7 text-sage-600 transition-colors group-hover:text-sage-700" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path d="M16 3c5 3.6 8 8 8 13.2C24 23 20.4 27.5 16 29c-4.4-1.5-8-6-8-12.8C8 11 11 6.6 16 3Z" fill="currentColor" opacity=".16"/>
+          <path d="M16 4.5v22M16 9.5c2.8 1.4 4.6 3.6 5.4 6.7M16 14.5c-2.4 1.2-4 3.1-4.7 5.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <span class="font-serif text-lg tracking-tight text-ink transition-colors group-hover:text-sage-600">Selah</span>
+      </button>
+
+      <div id="search-wrap" class="relative ml-auto w-full max-w-[14rem] sm:max-w-md">
+        <form action="{{ url_for('search_route') }}" method="get" role="search" class="relative">
+          <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5" stroke-linecap="round"/>
+          </svg>
+          <input
+            id="search-input"
+            type="search"
+            name="q"
+            value="{{ request.args.get('q', '') }}"
+            placeholder="Search verses or “John 3:16”…"
+            autocomplete="off"
+            spellcheck="false"
+            aria-label="Search the Bible"
+            class="w-full rounded-full border border-line bg-surface py-2 pl-9 pr-8 text-sm text-ink placeholder:text-muted/80 focus:border-sage-500 focus:outline-none focus:ring-2 focus:ring-sage-200"
+            hx-get="{{ url_for('search_route') }}"
+            hx-trigger="input changed delay:250ms, focus"
+            hx-target="#search-results"
+            hx-include="this"
+            hx-indicator="#search-spin">
+          <span id="search-spin" class="htmx-indicator absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border-2 border-sage-200 border-t-sage-600"></span>
+        </form>
+        <div id="search-results" class="search-results" aria-live="polite"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto w-full max-w-6xl sm:px-6">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="mt-16 border-t border-line/70 bg-surface/60">
+    <div class="mx-auto max-w-6xl px-6 py-10 text-center text-sm text-muted">
+      <p class="font-serif text-base text-ink">Selah</p>
+      <p class="mt-1">A quiet place to read Scripture · {{ stats.books }} books · {{ stats.verses }} verses</p>
+      <p class="mt-1 text-xs">King James Version (public domain). Built with Flask, SQLite, HTMX &amp; Tailwind CSS.</p>
+    </div>
+  </footer>
+
+  {# ---- navigation / settings drawer (opened from the Selah logo) ---- #}
+  <div id="nav-backdrop" data-close-nav></div>
+  <aside id="nav-drawer" aria-hidden="true" aria-label="Navigation and settings" tabindex="-1">
+    <div class="nav-head">
+      <div>
+        <p class="brand">
+          <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <path d="M16 3c5 3.6 8 8 8 13.2C24 23 20.4 27.5 16 29c-4.4-1.5-8-6-8-12.8C8 11 11 6.6 16 3Z" fill="currentColor" opacity=".16"/>
+            <path d="M16 4.5v22M16 9.5c2.8 1.4 4.6 3.6 5.4 6.7M16 14.5c-2.4 1.2-4 3.1-4.7 5.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          Selah
+        </p>
+        <p class="tagline">A quiet place to read Scripture</p>
+      </div>
+      <button type="button" class="icon-btn" data-close-nav aria-label="Close menu">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    {# ---- scroll body: sits below the fixed head so content never hides under it ---- #}
+    <div class="nav-body">
+    <nav class="nav-links" aria-label="Primary">
+      <a href="{{ url_for('home') }}" data-close-nav>Read</a>
+      <a href="{{ url_for('search_route') }}" data-close-nav>Search</a>
+      <a href="{{ url_for('read_chapter', book='psalms', chapter=23) }}" data-close-nav>Psalm 23</a>
+    </nav>
+
+    <section class="nav-section">
+      <h3>Settings</h3>
+
+      <p class="setting-group-title">Typography</p>
+      <div class="setting-row">
+        <label for="set-font-size">Font size <output id="out-font-size" for="set-font-size">100%</output></label>
+        <input type="range" id="set-font-size" min="0.85" max="1.6" step="0.05" value="1.1">
+      </div>
+      <div class="setting-row">
+        <label for="set-word-spacing">Word spacing <output id="out-word-spacing" for="set-word-spacing">0.00em</output></label>
+        <input type="range" id="set-word-spacing" min="0" max="0.5" step="0.05" value="0">
+      </div>
+      <div class="setting-row">
+        <label for="set-font-family">Font family</label>
+        <select id="set-font-family">
+          <option value="serif">Georgia (serif)</option>
+          <option value="times">Times New Roman</option>
+          <option value="sans">System sans-serif</option>
+          <option value="mono">Monospace</option>
+        </select>
+      </div>
+
+      <p class="setting-group-title">Appearance</p>
+      <div class="setting-row setting-row--split">
+        <span class="setting-label" id="theme-label">Theme</span>
+        <div class="seg" role="group" aria-labelledby="theme-label">
+          <button type="button" data-theme-set="light">Light</button>
+          <button type="button" data-theme-set="dark">Dark</button>
+        </div>
+      </div>
+      <div class="setting-row setting-row--split">
+        <label for="set-verse-color">Scripture colour</label>
+        <input type="color" id="set-verse-color" value="#2b2823">
+      </div>
+      <div class="setting-row">
+        <label for="set-hl-word">Highlight word</label>
+        <input type="text" id="set-hl-word" placeholder="e.g. God" autocomplete="off" spellcheck="false" maxlength="40">
+      </div>
+      <div class="setting-row setting-row--split">
+        <label for="set-hl-color">Highlight colour</label>
+        <input type="color" id="set-hl-color" value="#16a34a">
+      </div>
+      <p class="hint">The highlighted word is marked in colour across every chapter you open.</p>
+
+      <p class="setting-group-title">Notifications</p>
+      <label class="switch-row" for="set-daily">
+        Daily reading reminder
+        <span class="switch"><input type="checkbox" id="set-daily"><span class="track"></span></span>
+      </label>
+
+      <p class="setting-group-title">Notes</p>
+      <label class="switch-row" for="set-inline-notes">
+        Show inline study notes
+        <span class="switch"><input type="checkbox" id="set-inline-notes"><span class="track"></span></span>
+      </label>
+      <a class="nav-sub-link" href="{{ url_for('all_notes_partial') }}"
+         hx-get="{{ url_for('all_notes_partial') }}" hx-target="#notes-manage-out" hx-swap="innerHTML">
+        Organize saved notes →
+      </a>
+      <div id="notes-manage-out"></div>
+    </section>
+
+    <section class="nav-section">
+      <h3>Wikipedia lexicon</h3>
+      <form class="lexicon-form" id="nav-lexicon-form">
+        <label class="sr-only" for="nav-lexicon-input">Look up a word</label>
+        <input type="search" id="nav-lexicon-input" placeholder="Look up a word…" autocomplete="off" spellcheck="false">
+        <button type="submit">Search</button>
+      </form>
+      <div id="nav-lexicon-out" aria-live="polite"></div>
+    </section>
+
+    <section class="nav-section">
+      <h3>Prayer &amp; reminders</h3>
+      <div id="prayer-verse" hx-get="{{ url_for('random_verse_partial') }}" hx-trigger="every 60s" hx-swap="innerHTML">
+        {% include "_random_verse.html" %}
+      </div>
+      <form id="reminder-form" class="reminder-form">
+        <label class="sr-only" for="reminder-text">Your reminder</label>
+        <input type="text" id="reminder-text" placeholder="Add a reminder…" maxlength="140" autocomplete="off">
+        <div class="chip-row" role="radiogroup" aria-label="Reminder category">
+          <label class="chip"><input type="radio" name="reminder-cat" value="Prayer" checked><span>Prayer</span></label>
+          <label class="chip"><input type="radio" name="reminder-cat" value="Church Meeting"><span>Church Meeting</span></label>
+          <label class="chip"><input type="radio" name="reminder-cat" value="rose"><span>rose</span></label>
+        </div>
+        <button type="submit" class="btn-primary">Add reminder</button>
+      </form>
+      <ul class="reminder-list" id="reminder-list"></ul>
+    </section>
+    </div><!-- /.nav-body -->
+  </aside>
+
+  <div id="drawer-backdrop" data-close-drawer></div>
+  <aside id="drawer" aria-hidden="true" aria-label="Verse details" tabindex="-1"></aside>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

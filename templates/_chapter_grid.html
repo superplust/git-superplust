@@ -1,0 +1,12 @@
+<h3 class="panel-heading">
+  {{ book.name }}
+  <span class="font-normal normal-case tracking-normal text-muted">· {{ book.chapter_count }} chapters</span>
+</h3>
+<div class="grid-chapters">
+  {% for n in range(1, book.chapter_count + 1) %}
+  {% set url = url_for('read_chapter', book=book.slug, chapter=n) %}
+  <a class="grid-chapter{% if n == chapter %} is-current{% endif %}" href="{{ url }}"
+     hx-get="{{ url }}" hx-target="#chapter-outlet" hx-push-url="{{ url }}"
+     {% if n == chapter %}aria-current="page"{% endif %}>{{ n }}</a>
+  {% endfor %}
+</div>

@@ -1,0 +1,26 @@
+{% set hx = true %}
+<div class="search-card">
+  {% if ref %}
+  {% set url = url_for('read_chapter', book=ref.book.slug, chapter=ref.chapter) ~ ('?focus=' ~ ref.verse if ref.verse else '') %}
+  <a class="search-goto" href="{{ url }}{% if ref.verse %}#v{{ ref.verse }}{% endif %}"
+     hx-get="{{ url }}" hx-target="#chapter-outlet" hx-push-url="{{ url }}">
+    <span class="label">Jump to</span>
+    <strong>{{ ref.book.name }} {{ ref.chapter }}{% if ref.verse %}:{{ ref.verse }}{% endif %}</strong>
+    <span class="arrow" aria-hidden="true">→</span>
+  </a>
+  {% endif %}
+
+  {% if rows %}
+  <ul class="search-hits">
+    {% for r in rows %}{% include "_search_hit.html" %}{% endfor %}
+  </ul>
+  {% elif not ref %}
+  <p class="search-empty">No verses match “{{ q }}”.</p>
+  {% endif %}
+
+  {% if total > rows|length %}
+  <a class="search-more" href="{{ url_for('search_route', q=q) }}">View all {{ total }} results →</a>
+  {% elif rows %}
+  <span class="search-count">{{ total }} result{{ 's' if total != 1 }}</span>
+  {% endif %}
+</div>
