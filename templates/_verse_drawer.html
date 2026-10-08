@@ -1,0 +1,80 @@
+<div class="drawer-top">
+  <div class="drawer-head">
+    <div>
+      <p class="ref">{{ verse.book_name }} {{ verse.chapter }}:{{ verse.verse }}</p>
+      <p class="sub"><span data-translation-label>{{ translation_label }}</span></p>
+    </div>
+    <button type="button" class="icon-btn" data-close-drawer aria-label="Close verse details">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="drawer-tabs" role="tablist" aria-label="Verse tools">
+    <button type="button" class="drawer-tab is-active" id="drawer-tab-notes" role="tab"
+            aria-selected="true" aria-controls="drawer-panel-notes" data-drawer-tab="notes">Notes</button>
+    <button type="button" class="drawer-tab" id="drawer-tab-lexicon" role="tab"
+            aria-selected="false" aria-controls="drawer-panel-lexicon" data-drawer-tab="lexicon">Lexicon</button>
+  </div>
+</div>
+
+{# ---- scroll body: sits below the fixed .drawer-top (head + tabs) ---- #}
+<div class="drawer-body">
+<div class="drawer-tabpanel" id="drawer-panel-notes" role="tabpanel" aria-labelledby="drawer-tab-notes" data-tab-panel="notes">
+  <blockquote class="drawer-verse"{% if verse.translation != 'kjv' %} dir="rtl" lang="ar"{% endif %}>{{ verse.text }}</blockquote>
+
+  <div class="drawer-actions">
+    <button type="button" class="pill"
+            data-copy="{{ verse.book_name }} {{ verse.chapter }}:{{ verse.verse }} — {{ verse.text }} ({{ translation_tag }})">Copy verse</button>
+    {% set url = url_for('read_chapter', book=verse.slug, chapter=verse.chapter) ~ '?focus=' ~ verse.verse %}
+    <a class="pill" href="{{ url }}#v{{ verse.verse }}"
+       hx-get="{{ url }}" hx-target="#chapter-outlet" hx-push-url="{{ url }}"
+       data-close-drawer>Go to verse</a>
+  </div>
+
+  <section class="drawer-section">
+    <h3>Commentary</h3>
+    {% if commentary %}
+      {% for c in commentary %}
+      <div class="note-card">
+        <p class="note-title">{{ c.title }}</p>
+        <p class="note-body">{{ c.body }}</p>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="empty">No commentary for this verse yet — try the Notes toggle for verses marked with a dot.</p>
+    {% endif %}
+  </section>
+
+  <section class="drawer-section">
+    <h3>Your notes</h3>
+    {% if not notes %}
+    <p class="empty" id="notes-empty">Private notes you save are kept in this browser’s database.</p>
+    {% endif %}
+    <ul class="notes-list" id="notes-list">
+      {% for note in notes %}{% include "_note_item.html" %}{% endfor %}
+    </ul>
+    <form class="note-form" data-notes-form
+          hx-post="{{ url_for('add_note', verse_id=verse.id) }}"
+          hx-target="#notes-list" hx-swap="beforeend">
+      <label class="sr-only" for="note-body">New note</label>
+      <textarea id="note-body" name="body" rows="3" required maxlength="2000"
+                placeholder="Write a private note about this verse…"></textarea>
+      <button type="submit" class="btn-primary">Save note</button>
+    </form>
+  </section>
+</div>
+
+<div class="drawer-tabpanel" id="drawer-panel-lexicon" role="tabpanel" aria-labelledby="drawer-tab-lexicon"
+     data-tab-panel="lexicon" hidden
+     data-lexicon-verse="{{ verse.text }}" data-lexicon-ref="{{ verse.book_name }} {{ verse.chapter }}:{{ verse.verse }}">
+  <section class="drawer-section">
+    <h3>Lexicon</h3>
+    <form class="lexicon-form" id="drawer-lexicon-form">
+      <label class="sr-only" for="drawer-lexicon-input">Look up a word</label>
+      <input type="search" id="drawer-lexicon-input" placeholder="Look up a word from this verse…"
+             autocomplete="off" spellcheck="false">
+      <button type="submit">Search</button>
+    </form>
+    <div id="drawer-lexicon-out" aria-live="polite"></div>
+  </section>
+</div>
+</div><!-- /.drawer-body -->

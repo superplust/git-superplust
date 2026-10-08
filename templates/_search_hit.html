@@ -1,0 +1,8 @@
+<li>
+  {% set url = url_for('read_chapter', book=r.slug, chapter=r.chapter) ~ '?focus=' ~ r.verse %}
+  <a class="hit" href="{{ url }}#v{{ r.verse }}"
+     {% if hx|default(true) %}hx-get="{{ url }}" hx-target="#chapter-outlet" hx-push-url="{{ url }}"{% endif %}>
+    <span class="hit-ref">{{ r.book_name }} {{ r.chapter }}:{{ r.verse }}</span>
+    <span class="hit-text" dir="auto">{{ r.html|safe }}</span>
+  </a>
+</li>

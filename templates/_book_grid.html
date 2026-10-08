@@ -1,0 +1,23 @@
+{% set current = current|default('') %}
+<section>
+  <h3 class="panel-heading">Old Testament</h3>
+  <div class="grid-books">
+    {% for b in books if b.testament == 'OT' %}
+    {% set url = url_for('read_chapter', book=b.slug, chapter=1) %}
+    <a class="grid-book{% if b.slug == current %} is-current{% endif %}" href="{{ url }}"
+       hx-get="{{ url }}" hx-target="#chapter-outlet" hx-push-url="{{ url }}"
+       {% if b.slug == current %}aria-current="page"{% endif %}>{{ b.name }}</a>
+    {% endfor %}
+  </div>
+</section>
+<section class="mt-4">
+  <h3 class="panel-heading">New Testament</h3>
+  <div class="grid-books">
+    {% for b in books if b.testament == 'NT' %}
+    {% set url = url_for('read_chapter', book=b.slug, chapter=1) %}
+    <a class="grid-book{% if b.slug == current %} is-current{% endif %}" href="{{ url }}"
+       hx-get="{{ url }}" hx-target="#chapter-outlet" hx-push-url="{{ url }}"
+       {% if b.slug == current %}aria-current="page"{% endif %}>{{ b.name }}</a>
+    {% endfor %}
+  </div>
+</section>

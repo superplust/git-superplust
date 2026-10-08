@@ -1,0 +1,1444 @@
+/* ==========================================================================
+   Selah — custom styles on top of Tailwind utilities.
+   The palette below mirrors tailwind.config in base.html (keep in sync).
+   ========================================================================== */
+
+:root {
+  /* ---- palette (hex — used directly by the components below) ---- */
+  --paper: #faf7f1;
+  --surface: #fffdfa;
+  --ink: #2b2823;
+  --ink-soft: #4a453d;
+  --muted: #7a736a;
+  --line: #e9e2d5;
+  --sage-50: #f2f6f2;
+  --sage-100: #e2ebe4;
+  --sage-200: #c9dbd0;
+  --sage-500: #5b7d68;
+  --sage-600: #496654;
+  --sage-700: #3a5244;
+  --mark: #f4e7c6;
+  --danger: #a8503f;
+  /* accent used *behind* white text (buttons, active pills) */
+  --accent-strong: #496654;
+  --accent-strong-hover: #3a5244;
+  /* hover wash behind a verse row */
+  --verse-hover: rgba(255, 253, 250, 0.9);
+  /* ---- the same palette as rgb triplets, consumed by Tailwind
+     utilities through rgb(var(--tw-*) / <alpha-value>) in base.html ---- */
+  --tw-paper: 250 247 241;
+  --tw-surface: 255 253 250;
+  --tw-ink: 43 40 35;
+  --tw-ink-soft: 74 69 61;
+  --tw-muted: 122 115 106;
+  --tw-line: 233 226 213;
+  --tw-sage-50: 242 246 242;
+  --tw-sage-100: 226 235 228;
+  --tw-sage-200: 201 219 208;
+  --tw-sage-500: 91 125 104;
+  --tw-sage-600: 73 102 84;
+  --tw-sage-700: 58 82 68;
+  /* ---- reading typography (overridden from Settings) ---- */
+  --reading-size: 1.1rem;
+  --reading-spacing: 0em;
+  --reading-font: var(--serif);
+  --verse-color: var(--ink);
+  --hl-color: #16a34a;
+  --danger-dark: #e08a76;
+  --header-h: 3.5rem;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  /* Arabic scripture: a naskh stack that falls back through the platforms'
+     installed fonts (the app ships no webfonts and works offline). */
+  --arabic-font: "Amiri", "Scheherazade New", "Traditional Arabic", "Geeza Pro",
+    "Noto Naskh Arabic", "Noto Naskh Arabic UI", "Times New Roman", serif;
+}
+
+/* --------------------------------------------------------------------------
+   Dark mode — same keys, dark values. The <html data-theme="dark"> attribute
+   is set by static/js/settings.js before first paint (localStorage-backed).
+   -------------------------------------------------------------------------- */
+html[data-theme="dark"] {
+  --paper: #1a1815;
+  --surface: #23211c;
+  --ink: #ece6da;
+  --ink-soft: #c8c0b2;
+  --muted: #9b9384;
+  --line: #37342c;
+  --sage-50: #1e2621;
+  --sage-100: #27312b;
+  --sage-200: #35443c;
+  --sage-500: #7fa891;
+  --sage-600: #93bda6;
+  --sage-700: #a9ccb8;
+  --mark: #4c4526;
+  --danger: var(--danger-dark);
+  --accent-strong: #3f7a5e;
+  --accent-strong-hover: #4a8c6d;
+  --verse-hover: rgba(255, 255, 255, 0.05);
+
+  --tw-paper: 26 24 21;
+  --tw-surface: 35 33 28;
+  --tw-ink: 236 230 218;
+  --tw-ink-soft: 200 192 178;
+  --tw-muted: 155 147 132;
+  --tw-line: 55 52 44;
+  --tw-sage-50: 30 38 33;
+  --tw-sage-100: 39 49 43;
+  --tw-sage-200: 53 68 60;
+  --tw-sage-500: 127 168 145;
+  --tw-sage-600: 147 189 166;
+  --tw-sage-700: 169 204 184;
+
+  --verse-color: var(--ink);
+}
+
+@media (min-width: 640px) {
+  :root { --header-h: 4rem; }
+}
+
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  text-rendering: optimizeLegibility;
+}
+
+/* --------------------------------------------------------------------------
+   Dark-mode overrides for Tailwind utilities that paint white text on the
+   sage accent (higher specificity than the generated utility wins regardless
+   of stylesheet order).
+   -------------------------------------------------------------------------- */
+html[data-theme="dark"] .bg-sage-600,
+html[data-theme="dark"] .bg-sage-700 { background-color: var(--accent-strong); }
+html[data-theme="dark"] .hover\:bg-sage-700:hover { background-color: var(--accent-strong-hover); }
+html[data-theme="dark"] .focus\:border-sage-500:focus { border-color: var(--sage-500); }
+
+::selection { background: var(--sage-100); }
+
+:focus-visible {
+  outline: 2px solid var(--sage-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   Reading progress bar (shown while an HTMX request is in flight)
+   -------------------------------------------------------------------------- */
+#topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+#topbar::after {
+  content: "";
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--sage-500);
+  transition: width 0.6s ease-out;
+}
+body.htmx-busy #topbar { opacity: 1; }
+body.htmx-busy #topbar::after { width: 88%; }
+
+/* --------------------------------------------------------------------------
+   HTMX indicator (search spinner)
+   -------------------------------------------------------------------------- */
+.htmx-indicator {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.htmx-indicator.htmx-request,
+.htmx-request .htmx-indicator { opacity: 1; }
+
+/* --------------------------------------------------------------------------
+   Toolbar controls
+   -------------------------------------------------------------------------- */
+.tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 2.15rem;
+  padding: 0 0.6rem;
+  border-radius: 0.6rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.tool-btn:hover {
+  background: var(--surface);
+  border-color: var(--line);
+}
+.tool-btn[aria-expanded="true"],
+.tool-btn.is-active {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--sage-700);
+  box-shadow: 0 1px 2px rgba(43, 40, 35, 0.06);
+}
+
+.nav-arrow {
+  display: grid;
+  place-items: center;
+  width: 2.15rem;
+  height: 2.15rem;
+  flex: none;
+  border-radius: 0.6rem;
+  border: 1px solid transparent;
+  color: var(--muted);
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+a.nav-arrow:hover {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--sage-700);
+}
+.nav-arrow.is-disabled { opacity: 0.35; }
+
+/* End-of-chapter cards */
+.nav-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.9rem;
+  background: var(--surface);
+  text-decoration: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+a.nav-card:hover {
+  border-color: var(--sage-200);
+  box-shadow: 0 10px 26px rgba(43, 40, 35, 0.07);
+  transform: translateY(-1px);
+}
+.nav-card.is-right { text-align: right; }
+.nav-card .label { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.04em; }
+.nav-card strong { font-family: var(--serif); font-size: 1.05rem; font-weight: 600; color: var(--ink); }
+.nav-card.is-disabled { background: transparent; opacity: 0.6; }
+.nav-card.is-disabled strong { color: var(--muted); font-weight: 500; }
+
+/* --------------------------------------------------------------------------
+   Dropdown panels (books / chapters)
+   -------------------------------------------------------------------------- */
+.panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  padding: 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  box-shadow: 0 18px 44px rgba(43, 40, 35, 0.16);
+  max-height: min(70vh, 30rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  animation: pop 0.16s ease-out;
+}
+@media (min-width: 768px) {
+  #book-panel { width: 30rem; right: auto; }
+  #chapter-panel { width: 25rem; right: auto; }
+}
+
+.panel-heading {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin: 0.15rem 0 0.55rem;
+}
+
+.grid-books {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+  gap: 0.15rem;
+}
+.grid-book {
+  display: block;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.55rem;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+.grid-book:hover { background: var(--sage-50); color: var(--sage-700); }
+.grid-book.is-current {
+  background: var(--sage-100);
+  color: var(--sage-700);
+  font-weight: 600;
+}
+
+.grid-chapters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(2.7rem, 1fr));
+  gap: 0.35rem;
+}
+.grid-chapter {
+  display: grid;
+  place-items: center;
+  height: 2.4rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+.grid-chapter:hover {
+  background: var(--sage-50);
+  border-color: var(--sage-200);
+  color: var(--sage-700);
+}
+.grid-chapter.is-current {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   Scripture typography
+   -------------------------------------------------------------------------- */
+.verse {
+  position: relative;
+  display: block;
+  padding: 0.5rem 0.7rem;
+  margin: 0.1rem -0.7rem;
+  border-radius: 0.7rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+@media (hover: hover) {
+  .verse:hover { background: var(--verse-hover); }
+}
+.verse:focus-within {
+  outline: 2px solid var(--sage-500);
+  outline-offset: 2px;
+}
+
+.verse-line {
+  margin: 0;
+  font-family: var(--reading-font);
+  font-size: var(--reading-size);
+  word-spacing: var(--reading-spacing);
+  line-height: 1.85;
+  color: var(--ink);
+}
+@media (min-width: 640px) {
+  .verse-line { line-height: 1.9; }
+}
+
+.verse-num {
+  font-family: var(--sans);
+  font-size: 0.7em;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  min-width: 1.55em;
+  display: inline-block;
+  text-align: right;
+  margin-right: 0.55em;
+  padding: 0.1em 0.18em;
+  vertical-align: 0.28em;
+  border-radius: 0.3em;
+  transition: color 0.12s ease, background-color 0.12s ease;
+}
+.verse-num:hover { color: var(--sage-700); background: var(--sage-50); }
+
+.verse-text {
+  color: var(--verse-color);
+  text-wrap: pretty;
+}
+
+/* --------------------------------------------------------------------------
+   Arabic scripture. The .verses container carries dir="rtl" (set by the
+   template when the Arabic text is selected), so only the scripture itself
+   reads right-to-left -- toolbars, headings and controls stay as they are.
+   -------------------------------------------------------------------------- */
+.verses[dir="rtl"] .verse-line {
+  font-family: var(--arabic-font);
+  letter-spacing: 0;
+}
+/* The verse number sits on the right in RTL: move its gutter to the left. */
+.verses[dir="rtl"] .verse-num {
+  margin-right: 0;
+  margin-left: 0.55em;
+  text-align: center;
+}
+.verses[dir="rtl"] .note-dot {
+  margin-right: 0;
+  margin-left: 0.5em;
+}
+.verses[dir="rtl"] .note-toggle {
+  margin-left: 0;
+  margin-right: 0.45rem;
+}
+.drawer-verse[dir="rtl"] {
+  font-family: var(--arabic-font);
+  direction: rtl;
+  text-align: right;
+  padding-left: 0;
+  padding-right: 0.95rem;
+  border-left: 0;
+  border-right: 3px solid var(--sage-200);
+}
+.verse-card blockquote[dir="rtl"] {
+  font-family: var(--arabic-font);
+  direction: rtl;
+  text-align: right;
+}
+.hit-text[dir="rtl"] {
+  font-family: var(--arabic-font);
+}
+
+/* Custom word highlighter (Settings → Appearance). The span is injected by
+   app.js; color comes from the chosen highlight colour. */
+.word-hl {
+  color: var(--hl-color);
+  background: var(--mark);
+  background: color-mix(in srgb, var(--hl-color) 18%, transparent);
+  border-radius: 0.2em;
+  padding: 0 0.1em;
+}
+
+.note-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--sage-500);
+  margin-right: 0.5em;
+  vertical-align: 0.3em;
+  opacity: 0.8;
+}
+
+/* Flash-highlight when arriving at a verse from search / a link */
+.verse-focus { animation: verse-flash 2.6s ease-out; }
+@keyframes verse-flash {
+  0%, 30% {
+    background: var(--sage-100);
+    box-shadow: 0 0 0 5px var(--sage-100);
+  }
+  100% {
+    background: transparent;
+    box-shadow: 0 0 0 5px transparent;
+  }
+}
+
+/* Inline study notes (toolbar "Notes" toggle) */
+.note-toggle {
+  margin-left: 0.45rem;
+  font-family: var(--sans);
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sage-600);
+  background: var(--sage-50);
+  border: 1px solid var(--sage-100);
+  border-radius: 999px;
+  padding: 0.18em 0.6em;
+  vertical-align: 0.14em;
+  transition: background-color 0.12s ease;
+}
+.note-toggle:hover { background: var(--sage-100); }
+.note-toggle[aria-expanded="true"] {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: #fff;
+}
+
+.inline-note {
+  margin: 0.55rem 0 0.35rem;
+  animation: pop 0.18s ease-out;
+}
+.inline-note .note-card { margin-bottom: 0; }
+
+/* --------------------------------------------------------------------------
+   Search results
+   -------------------------------------------------------------------------- */
+.search-results {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  z-index: 45;
+}
+.search-results:empty { display: none; }
+
+.search-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  box-shadow: 0 20px 48px rgba(43, 40, 35, 0.16);
+  overflow: hidden;
+  max-height: min(72vh, 28rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  animation: pop 0.16s ease-out;
+}
+
+.search-goto {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.8rem 0.95rem;
+  background: var(--sage-50);
+  border-bottom: 1px solid var(--line);
+  font-size: 0.92rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+.search-goto:hover { background: var(--sage-100); }
+.search-goto .label {
+  font-size: 0.66rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--sage-600);
+}
+.search-goto strong { font-family: var(--serif); font-size: 1.02rem; }
+.search-goto .arrow { margin-left: auto; color: var(--sage-600); }
+
+.search-hits { list-style: none; margin: 0; padding: 0; }
+.search-hits li + li { border-top: 1px solid var(--line); }
+
+.hit {
+  display: block;
+  padding: 0.7rem 0.95rem;
+  text-decoration: none;
+  transition: background-color 0.12s ease;
+}
+.hit:hover { background: var(--sage-50); }
+.hit-ref {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--sage-600);
+}
+.hit-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 0.15rem;
+  font-family: var(--serif);
+  font-size: 0.97rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.search-more,
+.search-count {
+  display: block;
+  padding: 0.65rem 0.95rem;
+  border-top: 1px solid var(--line);
+  background: var(--paper);
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-decoration: none;
+}
+a.search-more:hover { color: var(--sage-700); background: var(--sage-50); }
+.search-empty { padding: 1rem 0.95rem; font-size: 0.88rem; color: var(--muted); }
+
+mark {
+  background: var(--mark);
+  color: inherit;
+  padding: 0.05em 0.15em;
+  border-radius: 0.2em;
+}
+
+/* --------------------------------------------------------------------------
+   Verse drawer (bottom sheet on mobile, side panel on desktop)
+   -------------------------------------------------------------------------- */
+#drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(43, 40, 35, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+body.drawer-open #drawer-backdrop {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#drawer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  max-height: 86vh;
+  max-height: 86dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-radius: 1.3rem 1.3rem 0 0;
+  box-shadow: 0 -22px 60px rgba(43, 40, 35, 0.28);
+  transform: translateY(103%);
+  visibility: hidden;
+  overflow: hidden;
+  transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1), visibility 0s 0.32s;
+}
+body.drawer-open #drawer {
+  transform: translateY(0);
+  visibility: visible;
+  transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1), visibility 0s 0s;
+}
+@media (min-width: 768px) {
+  #drawer {
+    top: 0;
+    bottom: 0;
+    left: auto;
+    right: 0;
+    width: 27rem;
+    max-height: none;
+    border-radius: 0;
+    border-left: 1px solid var(--line);
+    box-shadow: -24px 0 60px rgba(43, 40, 35, 0.16);
+    transform: translateX(105%);
+  }
+  body.drawer-open #drawer { transform: translateX(0); }
+}
+
+.drawer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem 1.25rem 0.8rem;
+}
+.drawer-head .ref {
+  font-family: var(--serif);
+  font-size: 1.4rem;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.drawer-head .sub {
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.icon-btn:hover { color: var(--ink); border-color: var(--sage-200); }
+
+.drawer-verse {
+  margin: 1.1rem 1.25rem;
+  padding-left: 0.95rem;
+  border-left: 3px solid var(--sage-200);
+  font-family: var(--reading-font);
+  font-size: 1.15rem;
+  word-spacing: var(--reading-spacing);
+  line-height: 1.75;
+  color: var(--verse-color);
+}
+
+.drawer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0 1.25rem 1.1rem;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+.pill:hover {
+  background: var(--sage-50);
+  border-color: var(--sage-200);
+  color: var(--sage-700);
+}
+
+.drawer-section { padding: 0 1.25rem 1.4rem; }
+.drawer-section h3 {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin-bottom: 0.6rem;
+}
+
+.note-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 0.85rem;
+  padding: 0.8rem 0.9rem;
+  margin-bottom: 0.6rem;
+}
+.note-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--sage-700);
+}
+.note-body {
+  margin-top: 0.3rem;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+.empty {
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.notes-list:empty { display: none; }
+
+.note-item {
+  background: var(--sage-50);
+  border-radius: 0.75rem;
+  padding: 0.65rem 0.75rem;
+}
+.note-item .note-body {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  white-space: pre-line;
+  color: var(--ink);
+}
+.note-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.45rem;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.link-btn {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  color: var(--muted);
+  transition: color 0.12s ease;
+}
+.link-btn:hover { color: var(--danger); }
+
+.note-form textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: var(--paper);
+  padding: 0.6rem 0.75rem;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--ink);
+  resize: vertical;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.note-form textarea:focus {
+  outline: none;
+  border-color: var(--sage-500);
+  box-shadow: 0 0 0 3px var(--sage-100);
+}
+.btn-primary {
+  margin-top: 0.55rem;
+  padding: 0.5rem 1.05rem;
+  border-radius: 0.75rem;
+  background: var(--accent-strong);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color 0.12s ease;
+}
+.btn-primary:hover { background: var(--accent-strong-hover); }
+.btn-primary.htmx-request { opacity: 0.6; }
+
+/* --------------------------------------------------------------------------
+   Translation selector (reading toolbar + clickable chapter-header label)
+   -------------------------------------------------------------------------- */
+#translation-panel {
+  left: auto;
+  right: 0;
+  min-width: 16rem;
+}
+.translation-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid transparent;
+  border-radius: 0.6rem;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  text-align: left;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+.translation-option:hover { background: var(--sage-50); color: var(--sage-700); }
+.translation-option.is-current {
+  background: var(--sage-100);
+  border-color: var(--sage-200);
+  color: var(--sage-700);
+  font-weight: 600;
+}
+.translation-option .tick {
+  flex: none;
+  width: 0.95rem;
+  height: 0.95rem;
+  color: var(--sage-600);
+  opacity: 0;
+}
+.translation-option.is-current .tick { opacity: 1; }
+
+.translation-eyebrow {
+  display: inline;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px dashed var(--line);
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.translation-eyebrow:hover {
+  color: var(--sage-600);
+  border-bottom-color: var(--sage-500);
+}
+
+.hint {
+  margin-top: 0.6rem;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* --------------------------------------------------------------------------
+   Navigation / settings drawer (opened from the top-left Selah logo)
+   -------------------------------------------------------------------------- */
+#nav-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  background: rgba(43, 40, 35, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+body.nav-open #nav-backdrop {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#nav-drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 60;
+  width: min(23rem, 92vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  box-shadow: 24px 0 60px rgba(43, 40, 35, 0.18);
+  transform: translateX(-105%);
+  visibility: hidden;
+  overflow: hidden;
+  transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1), visibility 0s 0.32s;
+}
+body.nav-open #nav-drawer {
+  transform: translateX(0);
+  visibility: visible;
+  transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1), visibility 0s 0s;
+}
+body.nav-open { overflow: hidden; }
+
+.nav-head {
+  position: relative;
+  flex: none;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem 1.15rem 0.85rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.nav-head .brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  color: var(--ink);
+}
+.nav-head .brand svg { width: 1.4rem; height: 1.4rem; color: var(--sage-600); }
+.nav-head .tagline {
+  margin-top: 0.15rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Scrollable region of the nav drawer — the head stays fixed above it, so
+   scrolled-to content always lands *below* the head, never underneath it. */
+.nav-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.85rem 1.15rem 0;
+}
+.nav-links a {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+.nav-links a:hover {
+  background: var(--sage-50);
+  border-color: var(--sage-200);
+  color: var(--sage-700);
+}
+
+.nav-section {
+  padding: 1.15rem 1.15rem 1.25rem;
+  border-top: 1px solid var(--line);
+  margin-top: 1.15rem;
+}
+.nav-section h3,
+.setting-group-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin-bottom: 0.7rem;
+}
+.setting-group-title { margin-top: 1.15rem; }
+.setting-group-title:first-child { margin-top: 0; }
+
+/* --------------------------------------------------------------------------
+   Settings controls (nav drawer)
+   -------------------------------------------------------------------------- */
+.setting-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.9rem;
+}
+.setting-row--split {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.setting-row > label,
+.setting-row > .setting-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.setting-row output {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+input[type="range"] {
+  width: 100%;
+  height: 1.3rem;
+  background: transparent;
+  accent-color: var(--accent-strong);
+  cursor: pointer;
+}
+input[type="color"] {
+  width: 3.2rem;
+  height: 2rem;
+  padding: 0.15rem;
+  border: 1px solid var(--line);
+  border-radius: 0.55rem;
+  background: var(--paper);
+  cursor: pointer;
+}
+.setting-row select,
+.lexicon-form input[type="search"],
+.lexicon-form input[type="text"],
+#reminder-text {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  background: var(--paper);
+  padding: 0.5rem 0.7rem;
+  font-family: var(--sans);
+  font-size: 0.875rem;
+  color: var(--ink);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.setting-row select:focus,
+.lexicon-form input:focus,
+#reminder-text:focus {
+  outline: none;
+  border-color: var(--sage-500);
+  box-shadow: 0 0 0 3px var(--sage-100);
+}
+
+/* Light / dark segmented control */
+.seg {
+  display: inline-flex;
+  flex: none;
+  gap: 0.15rem;
+  padding: 0.18rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+}
+.seg button {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+.seg button.is-active {
+  background: var(--accent-strong);
+  color: #fff;
+}
+
+/* Toggle switches */
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.switch {
+  position: relative;
+  flex: none;
+  width: 2.4rem;
+  height: 1.35rem;
+}
+.switch input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.switch .track {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--line);
+  transition: background-color 0.15s ease;
+  pointer-events: none;
+}
+.switch .track::after {
+  content: "";
+  position: absolute;
+  top: 0.16rem;
+  left: 0.16rem;
+  width: 1.03rem;
+  height: 1.03rem;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
+  transition: transform 0.15s ease;
+}
+.switch input:checked + .track { background: var(--accent-strong); }
+.switch input:checked + .track::after { transform: translateX(1.05rem); }
+.switch input:focus-visible + .track {
+  outline: 2px solid var(--sage-500);
+  outline-offset: 2px;
+}
+
+/* Category chips (reminder categories) */
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.chip { position: relative; }
+.chip input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.chip span {
+  display: inline-block;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+.chip input:checked + span {
+  background: var(--sage-100);
+  border-color: var(--sage-500);
+  color: var(--sage-700);
+  font-weight: 600;
+}
+.chip input:focus-visible + span {
+  outline: 2px solid var(--sage-500);
+  outline-offset: 2px;
+}
+
+/* Quick links inside settings */
+.nav-sub-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+  font-size: 0.82rem;
+  color: var(--sage-600);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.nav-sub-link:hover { color: var(--sage-700); }
+
+/* --------------------------------------------------------------------------
+   Wikipedia lexicon (nav drawer + verse drawer tab)
+   -------------------------------------------------------------------------- */
+.lexicon-form {
+  display: flex;
+  gap: 0.45rem;
+}
+.lexicon-form input { flex: 1; min-width: 0; }
+.lexicon-form button {
+  flex: none;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  background: var(--accent-strong);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+.lexicon-form button:hover { background: var(--accent-strong-hover); }
+.lexicon-form button.htmx-request,
+.lexicon-form button.is-busy { opacity: 0.6; }
+
+.lexicon-card {
+  margin-top: 0.7rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 0.85rem;
+  background: var(--paper);
+  animation: pop 0.16s ease-out;
+}
+.lexicon-card h4 {
+  font-family: var(--serif);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.lexicon-card .snippet {
+  margin-top: 0.3rem;
+  font-size: 0.87rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+.lexicon-card .more {
+  display: inline-block;
+  margin-top: 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--sage-600);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.lexicon-card .more:hover { color: var(--sage-700); }
+.lexicon-status {
+  margin-top: 0.7rem;
+  font-size: 0.83rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.lexicon-status:empty { display: none; }
+
+/* --------------------------------------------------------------------------
+   Prayer & reminder tool (nav drawer)
+   -------------------------------------------------------------------------- */
+.verse-card {
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--sage-100);
+  border-radius: 0.9rem;
+  background: var(--sage-50);
+  animation: pop 0.2s ease-out;
+}
+.verse-card blockquote {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color: var(--verse-color);
+}
+.verse-card .ref {
+  margin-top: 0.45rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sage-600);
+}
+
+.reminder-form { margin-top: 0.85rem; }
+.reminder-form .chip-row { margin-top: 0.5rem; }
+.reminder-form .btn-primary { width: 100%; }
+
+.reminder-list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.reminder-list:empty { display: none; }
+.reminder-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  background: var(--paper);
+  font-size: 0.85rem;
+  animation: pop 0.16s ease-out;
+}
+.reminder-item .cat {
+  flex: none;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: var(--sage-100);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sage-700);
+}
+.reminder-item .txt { flex: 1; color: var(--ink-soft); word-break: break-word; }
+.reminder-item .del {
+  flex: none;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0.15rem 0.3rem;
+  border-radius: 0.35rem;
+  cursor: pointer;
+}
+.reminder-item .del:hover { color: var(--danger); background: var(--sage-50); }
+
+/* Saved-notes manager (nav drawer → Notes Management) */
+.allnotes-item {
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  background: var(--paper);
+  margin-bottom: 0.55rem;
+  animation: pop 0.16s ease-out;
+}
+.allnotes-item:last-child { margin-bottom: 0; }
+.allnotes-ref {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--sage-600);
+  text-decoration: none;
+}
+.allnotes-ref:hover { text-decoration: underline; }
+.allnotes-body {
+  margin-top: 0.3rem;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  white-space: pre-line;
+  color: var(--ink);
+}
+.allnotes-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.45rem;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+/* --------------------------------------------------------------------------
+   Verse drawer: tabs (Notes | Lexicon)
+   -------------------------------------------------------------------------- */
+.drawer-top {
+  position: relative;
+  flex: none;
+  z-index: 1;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+/* Scrollable region of the verse drawer — head + tabs stay fixed above it. */
+.drawer-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.drawer-tabs {
+  display: flex;
+  gap: 0.3rem;
+  padding: 0.15rem 1.25rem 0.65rem;
+}
+.drawer-tab {
+  padding: 0.32rem 0.95rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+.drawer-tab:hover { color: var(--sage-700); border-color: var(--sage-200); }
+.drawer-tab.is-active {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: #fff;
+}
+.drawer-tabpanel[hidden] { display: none; }
+.drawer-tabpanel { animation: fade-in 0.18s ease-out; }
+.drawer-tabpanel > .drawer-section:first-child { padding-top: 1.1rem; }
+
+/* --------------------------------------------------------------------------
+   Motion utilities
+   -------------------------------------------------------------------------- */
+@keyframes pop {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Swapped chapter fades gently in */
+#chapter-outlet > .chapter { animation: fade-in 0.22s ease-out; }
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+body.drawer-open { overflow: hidden; }
+
+/* --------------------------------------------------------------------------
+   Reduced motion
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Print
+   -------------------------------------------------------------------------- */
+@media print {
+  .site-header, .reading-toolbar, #drawer, #drawer-backdrop, #nav-drawer,
+  #nav-backdrop, #topbar, .drawer-tabs,
+  .note-toggle, .nav-card, footer { display: none !important; }
+  body { background: #fff; }
+  .verse { break-inside: avoid; page-break-inside: avoid; }
+  .chapter-header { padding-top: 0; }
+}

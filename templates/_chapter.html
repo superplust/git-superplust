@@ -1,0 +1,139 @@
+<article class="chapter pb-24" data-book="{{ book.slug }}" data-chapter="{{ chapter }}" data-translation="{{ translation }}" data-title="{{ book.name }} {{ chapter }} · Selah">
+
+  {# ---- reading toolbar: book/chapter pickers, notes toggle, prev/next ---- #}
+  <div class="reading-toolbar sticky top-14 z-30 border-b border-line/60 bg-paper/90 backdrop-blur sm:top-16">
+    <div class="mx-auto flex h-12 max-w-3xl items-center gap-1 px-3 sm:px-6">
+      {% if prev_chapter %}
+      {% set prev_url = url_for('read_chapter', book=book.slug, chapter=prev_chapter) %}
+      <a class="nav-arrow" href="{{ prev_url }}" rel="prev" aria-label="Previous chapter — {{ book.name }} {{ prev_chapter }}"
+         hx-get="{{ prev_url }}" hx-target="#chapter-outlet" hx-push-url="{{ prev_url }}">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      </a>
+      {% else %}
+      <span class="nav-arrow is-disabled" aria-disabled="true" aria-label="No previous chapter">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      </span>
+      {% endif %}
+
+      <div class="panel-wrap relative">
+        <button type="button" class="tool-btn" data-toggle-panel="book-panel" aria-expanded="false" aria-controls="book-panel">
+          <span class="max-w-[7.5rem] truncate sm:max-w-none">{{ book.name }}</span>
+          <svg class="h-3.5 w-3.5 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div id="book-panel" class="panel hidden" data-book="{{ book.slug }}" role="menu" aria-label="Choose a book">
+          <div id="book-grid-body" data-panel-body>{% include "_book_grid.html" %}</div>
+        </div>
+      </div>
+
+      <div class="panel-wrap relative">
+        <button type="button" class="tool-btn" data-toggle-panel="chapter-panel" aria-expanded="false" aria-controls="chapter-panel">
+          <span class="tabular-nums">Ch {{ chapter }}</span>
+          <svg class="h-3.5 w-3.5 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div id="chapter-panel" class="panel hidden" data-book="{{ book.slug }}" data-chapter="{{ chapter }}" role="menu" aria-label="Choose a chapter">
+          <div id="chapter-grid-body" data-panel-body>{% include "_chapter_grid.html" %}</div>
+        </div>
+      </div>
+
+      <div class="panel-wrap relative ml-auto">
+        <button type="button" class="tool-btn" data-toggle-panel="translation-panel" aria-expanded="false" aria-controls="translation-panel" title="Translation">
+          <span class="max-w-[6.5rem] truncate sm:max-w-[11rem]" data-translation-label>{{ translation_label }}</span>
+          <svg class="h-3.5 w-3.5 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div id="translation-panel" class="panel hidden" role="menu" aria-label="Choose a translation">
+          {% include "_translation_options.html" %}
+        </div>
+      </div>
+
+      {% set commentary_url = url_for('read_chapter', book=book.slug, chapter=chapter) %}
+      <a class="tool-btn{% if inline_notes %} is-active{% endif %}"
+         href="{{ commentary_url }}{{ '?commentary=1' if not inline_notes }}"
+         hx-get="{{ commentary_url }}{{ '?commentary=1' if not inline_notes }}"
+         hx-target="#chapter-outlet" hx-push-url="{{ commentary_url }}{{ '?commentary=1' if not inline_notes }}"
+         aria-pressed="{{ 'true' if inline_notes else 'false' }}"
+         title="Toggle inline study notes">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5v-15Z"/><path d="M8 8h8M8 12h5"/>
+        </svg>
+        <span class="hidden sm:inline">Notes</span>
+      </a>
+
+      {% if next_chapter %}
+      {% set next_url = url_for('read_chapter', book=book.slug, chapter=next_chapter) %}
+      <a class="nav-arrow" href="{{ next_url }}" rel="next" aria-label="Next chapter — {{ book.name }} {{ next_chapter }}"
+         hx-get="{{ next_url }}" hx-target="#chapter-outlet" hx-push-url="{{ next_url }}">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+      </a>
+      {% else %}
+      <span class="nav-arrow is-disabled" aria-disabled="true" aria-label="No next chapter">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+      </span>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ---- chapter heading ---- #}
+  <header class="chapter-header mx-auto max-w-3xl px-5 pb-6 pt-10 text-center sm:pt-14">
+    <p class="text-[0.68rem] font-medium uppercase tracking-[0.22em] text-muted">
+      {{ 'Old' if book.testament == 'OT' else 'New' }} Testament ·
+      <button type="button" class="translation-eyebrow" data-toggle-panel="translation-panel"
+              aria-controls="translation-panel" aria-expanded="false" title="Choose a translation">
+        <span data-translation-label>{{ translation_label }}</span>
+      </button>
+    </p>
+    <h1 class="mt-3 font-serif text-4xl tracking-tight text-ink sm:text-5xl">{{ book.name }}</h1>
+    <p class="mt-2 font-serif text-lg text-sage-600">
+      Chapter {{ chapter }}
+      <span class="text-muted">· {{ verses|length }} verses</span>
+    </p>
+  </header>
+
+  {# ---- verses: RTL + Arabic type only when the Arabic text is active ---- #}
+  <div class="verses mx-auto max-w-3xl px-4 sm:px-6"
+       {% if translation != 'kjv' %}dir="rtl" lang="ar"{% endif %}>
+    {% for v in verses %}
+    <div class="verse{% if focus == v.verse %} verse-focus{% endif %}" id="v{{ v.verse }}" data-verse-id="{{ v.id }}">
+      <p class="verse-line">
+        <button type="button" class="verse-num" data-verse-num
+                hx-get="{{ url_for('verse_partial', verse_id=v.id) }}"
+                hx-target="#drawer" hx-swap="innerHTML"
+                aria-label="Details for {{ book.name }} {{ chapter }}:{{ v.verse }}">{{ v.verse }}</button>
+        {% if v.has_note %}<span class="note-dot" title="Commentary available — click the verse"></span>{% endif %}
+        <span class="verse-text">{{ v.text }}</span>
+        {% if inline_notes and v.has_note %}
+        <button type="button" class="note-toggle" data-note-target="notebox-{{ v.id }}" aria-expanded="false"
+                hx-get="{{ url_for('inline_note', verse_id=v.id) }}"
+                hx-trigger="click once" hx-target="#notebox-{{ v.id }}" hx-swap="innerHTML">Note</button>
+        {% endif %}
+      </p>
+      {% if inline_notes and v.has_note %}
+      <div class="inline-note" id="notebox-{{ v.id }}" hidden></div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  {# ---- end-of-chapter navigation ---- #}
+  <nav class="mx-auto mt-12 grid max-w-3xl gap-3 px-4 sm:grid-cols-2 sm:px-6" aria-label="Chapter navigation">
+    {% if prev_chapter %}
+    {% set prev_url = url_for('read_chapter', book=book.slug, chapter=prev_chapter) %}
+    <a class="nav-card" href="{{ prev_url }}" rel="prev"
+       hx-get="{{ prev_url }}" hx-target="#chapter-outlet" hx-push-url="{{ prev_url }}">
+      <span class="label">← Previous</span>
+      <strong>{{ book.name }} {{ prev_chapter }}</strong>
+    </a>
+    {% else %}
+    <span class="nav-card is-disabled"><span class="label">← Previous</span><strong>Start of the Bible</strong></span>
+    {% endif %}
+    {% if next_chapter %}
+    {% set next_url = url_for('read_chapter', book=book.slug, chapter=next_chapter) %}
+    <a class="nav-card is-right" href="{{ next_url }}" rel="next"
+       hx-get="{{ next_url }}" hx-target="#chapter-outlet" hx-push-url="{{ next_url }}">
+      <span class="label">Next →</span>
+      <strong>{{ book.name }} {{ next_chapter }}</strong>
+    </a>
+    {% else %}
+    <span class="nav-card is-right is-disabled"><span class="label">Next →</span><strong>End of {{ book.name }}</strong></span>
+    {% endif %}
+  </nav>
+</article>

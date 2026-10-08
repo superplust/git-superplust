@@ -1,0 +1,10 @@
+<li id="note-{{ note.id }}" class="note-item">
+  <p class="note-body">{{ note.body }}</p>
+  <div class="note-meta">
+    <time datetime="{{ note.created_at }}">{{ note.created_at[:10] }}</time>
+    <button type="button" class="link-btn"
+            hx-delete="{{ url_for('delete_note', note_id=note.id) }}"
+            hx-target="#note-{{ note.id }}" hx-swap="outerHTML"
+            hx-confirm="Delete this note?">Delete</button>
+  </div>
+</li>
